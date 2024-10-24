@@ -20,6 +20,7 @@ jobs:
 
       - name: Generate application.yml
         run: |
+          #!/usr/bin/env bash
           declare -A services=(
             ["gateway"]="${{ secrets.GATEWAY_YML }}"
             ["user"]="${{ secrets.USER_YML }}"
