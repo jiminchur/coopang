@@ -20,22 +20,31 @@ jobs:
 
       - name: Generate application.yml
         run: |
-          declare -A services=(
-          ["gateway"]="${{ secrets.GATEWAY_YML }}"
-          ["user"]="${{ secrets.USER_YML }}"
-          ["hub"]="${{ secrets.HUB_YML }}"
-          ["delivery"]="${{ secrets.DELIVERY_YML }}"
-          ["order"]="${{ secrets.ORDER_YML }}"
-          ["product"]="${{ secrets.PRODUCT_YML }}"
-          ["eureka"]="${{ secrets.EUREKA_YML }}"
-          ["ainoti"]="${{ secrets.AINOTI_YML }}"
-          )
-          for service in "${!services[@]}"; do
-            if [[ "${{ github.event.head_commit.message }}" == *"$service"* ]]; then
-              echo "${services[$service]}" > "./BOOT/$service/src/main/resources/application.yml"
-            fi
-          done
-        shell: bash
+          if [[ "${{ github.event.head_commit.message }}" == *"gateway"* ]]; then
+            echo "${{ secrets.GATEWAY_YML }}" > "./BOOT/gateway/src/main/resources/application.yml"
+          fi
+          if [[ "${{ github.event.head_commit.message }}" == *"user"* ]]; then
+            echo "${{ secrets.USER_YML }}" > "./BOOT/user/src/main/resources/application.yml"
+          fi
+          if [[ "${{ github.event.head_commit.message }}" == *"hub"* ]]; then
+            echo "${{ secrets.HUB_YML }}" > "./BOOT/hub/src/main/resources/application.yml"
+          fi
+          if [[ "${{ github.event.head_commit.message }}" == *"delivery"* ]]; then
+            echo "${{ secrets.DELIVERY_YML }}" > "./BOOT/delivery/src/main/resources/application.yml"
+          fi
+          if [[ "${{ github.event.head_commit.message }}" == *"order"* ]]; then
+            echo "${{ secrets.ORDER_YML }}" > "./BOOT/order/src/main/resources/application.yml"
+          fi
+          if [[ "${{ github.event.head_commit.message }}" == *"product"* ]]; then
+            echo "${{ secrets.PRODUCT_YML }}" > "./BOOT/product/src/main/resources/application.yml"
+          fi
+          if [[ "${{ github.event.head_commit.message }}" == *"eureka"* ]]; then
+            echo "${{ secrets.EUREKA_YML }}" > "./CLOUD/eureka/src/main/resources/application.yml"
+          fi
+          if [[ "${{ github.event.head_commit.message }}" == *"ainoti"* ]]; then
+            echo "${{ secrets.AINOTI_YML }}" > "./BOOT/ainoti/src/main/resources/application.yml"
+          fi
+          
 
       - name: Add EC2 Host to known_hosts
         run: |
