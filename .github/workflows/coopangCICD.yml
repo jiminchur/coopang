@@ -1,0 +1,85 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - DEV-cicd
+    paths:
+      - ./BOOT/gateway/**
+      - ./BOOT/user/**
+      - ./BOOT/hub/**
+      - ./BOOT/delivery/**
+      - ./BOOT/order/**
+      - ./BOOT/product/**
+      - ./CLOUD/eureka/**
+      - ./BOOT/ainoti/**
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Generate application.yml
+        run: |
+          declare -A services=(
+            ["gateway"]="${{ secrets.GATEWAY_YML }}"
+            ["user"]="${{ secrets.USER_YML }}"
+            ["hub"]="${{ secrets.HUB_YML }}"
+            ["delivery"]="${{ secrets.DELIVERY_YML }}"
+            ["order"]="${{ secrets.ORDER_YML }}"
+            ["product"]="${{ secrets.PRODUCT_YML }}"
+            ["eureka"]="${{ secrets.EUREKA_YML }}"
+            ["ainoti"]="${{ secrets.AINOTI_YML }}"
+          )
+          for service in "${!services[@]}"; do
+            if [[ "${{ github.event.head_commit.message }}" == *"$service"* ]]; then
+              echo "${services[$service]}" > "./BOOT/$service/src/main/resources/application.yml"
+            fi
+          done
+
+      - name: Add EC2 Host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+      - name: Build and Push Docker Images to Docker Hub
+        run: |
+          for service in "gateway" "user" "hub" "delivery" "order" "product" "eureka" "ainoti"; do
+            if [[ "${{ github.event.head_commit.message }}" == *"$service"* ]]; then
+              # Gradle 빌드
+              ./gradlew BOOT:$service:build -x test
+              # Docker 이미지 빌드
+              docker build -t your-dockerhub-username/$service:latest ./BOOT/$service
+              # Docker 이미지 푸시
+              docker push your-dockerhub-username/$service:latest
+            fi
+          done
+
+      - name: Manage Docker Compose on EC2
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > foodtogo.pem
+          chmod 600 foodtogo.pem
+          ssh -i foodtogo.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            for service in "gateway" "user" "hub" "delivery" "order" "product" "eureka" "ainoti"; do
+              if [[ "${{ github.event.head_commit.message }}" == *"$service"* ]]; then
+                echo "Stopping and removing containers for $service"
+                docker-compose -f "/path/to/$service/docker-compose.yml" down
+                echo "Pulling the latest image for $service"
+                docker-compose -f "/path/to/$service/docker-compose.yml" pull
+                echo "Starting containers for $service"
+                docker-compose -f "/path/to/$service/docker-compose.yml" up -d
+              fi
+            done
+          EOF
