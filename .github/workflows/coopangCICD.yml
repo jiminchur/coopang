@@ -20,22 +20,22 @@ jobs:
 
       - name: Generate application.yml
         run: |
-          #!/usr/bin/env bash
           declare -A services=(
-            ["gateway"]="${{ secrets.GATEWAY_YML }}"
-            ["user"]="${{ secrets.USER_YML }}"
-            ["hub"]="${{ secrets.HUB_YML }}"
-            ["delivery"]="${{ secrets.DELIVERY_YML }}"
-            ["order"]="${{ secrets.ORDER_YML }}"
-            ["product"]="${{ secrets.PRODUCT_YML }}"
-            ["eureka"]="${{ secrets.EUREKA_YML }}"
-            ["ainoti"]="${{ secrets.AINOTI_YML }}"
+          ["gateway"]="${{ secrets.GATEWAY_YML }}"
+          ["user"]="${{ secrets.USER_YML }}"
+          ["hub"]="${{ secrets.HUB_YML }}"
+          ["delivery"]="${{ secrets.DELIVERY_YML }}"
+          ["order"]="${{ secrets.ORDER_YML }}"
+          ["product"]="${{ secrets.PRODUCT_YML }}"
+          ["eureka"]="${{ secrets.EUREKA_YML }}"
+          ["ainoti"]="${{ secrets.AINOTI_YML }}"
           )
           for service in "${!services[@]}"; do
             if [[ "${{ github.event.head_commit.message }}" == *"$service"* ]]; then
               echo "${services[$service]}" > "./BOOT/$service/src/main/resources/application.yml"
             fi
           done
+        shell: bash
 
       - name: Add EC2 Host to known_hosts
         run: |
