@@ -4,15 +4,6 @@ on:
   push:
     branches:
       - DEV-cicd
-    paths:
-      - ./BOOT/gateway/**
-      - ./BOOT/user/**
-      - ./BOOT/hub/**
-      - ./BOOT/delivery/**
-      - ./BOOT/order/**
-      - ./BOOT/product/**
-      - ./CLOUD/eureka/**
-      - ./BOOT/ainoti/**
 jobs:
   build:
     runs-on: ubuntu-latest
