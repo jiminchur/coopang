@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - DEV-cicd # 배포할 브랜치 설정.
+      - DEV-cicd
     paths:
       - ./BOOT/gateway/**
       - ./BOOT/user/**
